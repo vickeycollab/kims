@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 type Classroom = { id: string; name: string; code: string };
@@ -194,7 +195,7 @@ export default function Home() {
     <main>
       <header className="brand-header">
         <button className="brand" onClick={goHome} aria-label="대시나루 첫 화면">
-          <img className="brand-logo" src="/dashnaru-logo.svg" alt="대시나루 국어학원" />
+          <Image className="brand-logo" src="/dashnaru-logo.svg" alt="대시나루 국어학원" width={158} height={46} priority />
         </button>
         {view !== "home" && <button className="text-button" onClick={goHome}>처음으로</button>}
       </header>
