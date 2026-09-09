@@ -194,8 +194,7 @@ export default function Home() {
     <main>
       <header className="brand-header">
         <button className="brand" onClick={goHome} aria-label="대시나루 첫 화면">
-          <span className="brand-mark" aria-hidden="true"><i /></span>
-          <span className="brand-copy"><strong>대시나루</strong><small>dashnaru academy</small></span>
+          <img className="brand-logo" src="/dashnaru-logo.svg" alt="대시나루 국어학원" />
         </button>
         {view !== "home" && <button className="text-button" onClick={goHome}>처음으로</button>}
       </header>
