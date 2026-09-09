@@ -25,11 +25,11 @@ p { color:#78655b; line-height:1.65; }
 .welcome h1 { font-size:48px; }
 .intro { margin-bottom:38px; }
 .role-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; text-align:left; max-width:650px; margin:0 auto; }
-.role-card { position:relative; min-height:205px; overflow:hidden; padding:25px 27px; border:1px solid #e1d2bd; border-radius:25px 25px 48px 25px; background:#fffefa; color:#4a352d; box-shadow:0 10px 25px rgba(91,68,51,.06); transition:transform .18s ease,box-shadow .18s ease; }
-.role-card::after { content:""; position:absolute; right:-28px; bottom:-35px; width:100px; height:100px; border:16px solid #f2d18a; border-radius:50%; opacity:.85; }
+.role-card { position:relative; min-height:205px; overflow:hidden; isolation:isolate; padding:25px 27px; border:1px solid #e1d2bd; border-radius:25px 25px 48px 25px; background:#fffefa; color:#4a352d; box-shadow:0 10px 25px rgba(91,68,51,.06); transition:transform .18s ease,box-shadow .18s ease; }
+.role-card::after { content:""; position:absolute; z-index:-1; right:-34px; bottom:-43px; width:90px; height:90px; border:13px solid #f2d18a; border-radius:50%; opacity:.82; }
 .role-card:hover,.session-card:hover { transform:translateY(-4px); box-shadow:0 18px 30px rgba(91,68,51,.15); }
 .teacher-card { background:#fff9e9; border-radius:48px 25px 25px 25px; }
-.teacher-card::after { border-color:#b97951; }
+.teacher-card::after { right:-31px; bottom:-39px; border-color:#b97951; }
 .role-number { display:block; color:#b57a50; font-size:12px; font-weight:800; letter-spacing:.15em; margin-bottom:25px; }
 .role-card h2 { font-family:"Gowun Batang",serif; font-size:27px; }
 .role-card p { font-size:14px; }
