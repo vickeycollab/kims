@@ -272,7 +272,7 @@ export default function Home() {
         <section className="panel narrow">
           <p className="eyebrow">TEACHER</p>
           <h1>선생님 코드 입력</h1>
-          <p>처음 이용하는 선생님은 예비 코드 <b>0909</b>를 입력해 개인 코드를 만드세요.</p>
+          <p>처음 이용하는 선생님은 예비 코드를 입력해 개인 코드를 만드세요.</p>
           <input type="password" value={teacherCode} onChange={(event) => setTeacherCode(event.target.value)} placeholder="선생님 코드" inputMode="numeric" onKeyDown={(event) => event.key === "Enter" && void enterTeacher()} />
           <button className="primary" onClick={enterTeacher}>관리자 페이지로</button>
         </section>
