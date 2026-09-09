@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "오답 확인",
-  description: "정답을 공개하지 않고 오답 문항만 확인하는 도구",
+  title: "대시나루 국어학원 | 숙제 오답 확인",
+  description: "대시나루 국어학원의 반별 숙제 오답 확인 도구",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
