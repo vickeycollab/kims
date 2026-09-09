@@ -28,7 +28,7 @@ export default function Home() {
   const [studentCode, setStudentCode] = useState("");
   const [studentSpace, setStudentSpace] = useState<StudentSpace | null>(null);
   const [studentSession, setStudentSession] = useState<HomeworkSession | null>(null);
-  const [answerText, setAnswerText] = useState("");
+  const [studentAnswers, setStudentAnswers] = useState<string[]>([]);
   const [wrong, setWrong] = useState<number[] | null>(null);
 
   const [teacherCode, setTeacherCode] = useState("");
@@ -66,13 +66,13 @@ export default function Home() {
   const checkAnswers = async () => {
     resetMessage();
     setWrong(null);
-    if (!studentSession || !compact(answerText)) return setMessage("답안을 입력해 주세요.");
+    if (!studentSession || !studentAnswers.length || studentAnswers.some((answer) => !answer)) return setMessage("모든 문항의 답을 선택해 주세요.");
     try {
       const data = await api({
         action: "submitAnswers",
         classCode: studentCode,
         sessionId: studentSession.id,
-        answers: answerText,
+        answers: studentAnswers.join(""),
       });
       setWrong(data.wrong);
     } catch (error) {
@@ -239,7 +239,7 @@ export default function Home() {
           <div className="session-grid">
             {studentSpace.sessions.map((session, index) => (
               <button className="session-card" key={session.id} onClick={() => {
-                setStudentSession(session); setAnswerText(""); setWrong(null); resetMessage(); setView("studentSession");
+                setStudentSession(session); setStudentAnswers(Array.from({ length: session.questionCount ?? 0 }, () => "")); setWrong(null); resetMessage(); setView("studentSession");
               }}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <h2>{session.name}</h2>
@@ -253,16 +253,38 @@ export default function Home() {
       )}
 
       {view === "studentSession" && studentSpace && studentSession && (
-        <section className="panel narrow">
-          <p className="eyebrow">{studentSpace.classroom.name}</p>
-          <h1>{studentSession.name}</h1>
-          <p>답을 붙여 입력하세요. 첫 글자는 1번, 둘째 글자는 2번입니다.</p>
-          <textarea value={answerText} onChange={(event) => setAnswerText(event.target.value)} placeholder="예: 1324453144554244" aria-label="내 답안" />
-          <p className="small">공백·쉼표·줄바꿈은 무시합니다. 현재 {compact(answerText).length}문항 입력</p>
-          <button className="primary" onClick={checkAnswers}>오답 확인</button>
-          <button className="secondary" onClick={() => { setAnswerText(""); setWrong(null); }}>다시 입력</button>
+        <section className="answer-panel">
+          <div className="answer-heading">
+            <div><p className="eyebrow">{studentSpace.classroom.name}</p><h1>{studentSession.name}</h1><p>각 문항의 답을 눌러 선택해 주세요.</p></div>
+            <div className="answer-progress"><b>{studentAnswers.filter(Boolean).length}</b> / {studentAnswers.length}<span>문항 선택</span></div>
+          </div>
+          <div className="answer-grid">
+            {studentAnswers.map((selected, index) => {
+              const question = index + 1;
+              const isWrong = wrong?.includes(question);
+              return <div className={isWrong ? "answer-card wrong-answer" : "answer-card"} key={question}>
+                <span className="question-number">{question}</span>
+                <div className="choice-row" role="group" aria-label={`${question}번 답 선택`}>
+                  {["0", "1", "2", "3", "4", "5"].map((choice) => (
+                    <button
+                      type="button"
+                      className={selected === choice ? "choice selected" : "choice"}
+                      key={choice}
+                      aria-pressed={selected === choice}
+                      onClick={() => {
+                        setStudentAnswers((answers) => answers.map((answer, answerIndex) => answerIndex === index ? choice : answer));
+                        setWrong(null);
+                      }}
+                    >{choice}</button>
+                  ))}
+                </div>
+              </div>;
+            })}
+          </div>
+          {!studentAnswers.length && <p className="empty">선생님이 아직 이 숙제의 답안표를 등록하지 않았습니다.</p>}
+          {!!studentAnswers.length && <button className="primary complete-button" onClick={checkAnswers}>답 기입 완료</button>}
           {wrong && <div className={wrong.length ? "result bad" : "result good"}>
-            {wrong.length ? <><strong>틀린 문항: {wrong.map((question) => `${question}번`).join(", ")}</strong><p>정답은 공개되지 않습니다.</p></> : <strong>입력한 문항은 모두 맞았습니다.</strong>}
+            {wrong.length ? <><strong>틀린 문항: {wrong.map((question) => `${question}번`).join(", ")}</strong><p>노란 테두리로 표시된 문항을 다시 확인해 보세요. 정답은 공개되지 않습니다.</p></> : <strong>선택한 문항은 모두 맞았습니다.</strong>}
           </div>}
         </section>
       )}
