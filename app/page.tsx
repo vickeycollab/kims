@@ -194,8 +194,8 @@ export default function Home() {
     <main>
       <header className="brand-header">
         <button className="brand" onClick={goHome} aria-label="대시나루 첫 화면">
-          <span className="brand-mark">ㄷ</span>
-          <span><strong>대시나루</strong><small>dashnaru academy</small></span>
+          <span className="brand-mark" aria-hidden="true"><i /></span>
+          <span className="brand-copy"><strong>대시나루</strong><small>dashnaru academy</small></span>
         </button>
         {view !== "home" && <button className="text-button" onClick={goHome}>처음으로</button>}
       </header>
