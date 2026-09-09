@@ -13,7 +13,7 @@ async function hash(pin: string) {
   return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 async function readBlobJson(blob: { url: string }) {
-  const value: any = await get(blob.url);
+  const value: any = await get(blob.url, { access: "private" });
   if (!value) return null;
   return JSON.parse(await new Response(value.stream).text());
 }
