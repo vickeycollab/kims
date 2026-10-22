@@ -285,15 +285,29 @@ export default function Home() {
 
       {view === "home" && (
         <section className="welcome">
-          <p className="eyebrow">DASHNARU KOREAN ACADEMY</p>
-          <h1>숙제 오답 확인</h1>
-          <p className="intro">정답은 공개하지 않고, 틀린 문항 번호만 알려드립니다.</p>
+          <div className="welcome-hero">
+            <div className="welcome-copy">
+              <p className="eyebrow">DASHNARU · HOMEWORK CHECK</p>
+              <h1>틀린 번호만,<br /><em>다음 공부로.</em></h1>
+              <p className="intro">숙제 답안을 확인하고 다시 살펴볼 문제를 찾아보세요. 정답은 공개되지 않습니다.</p>
+              <div className="welcome-process" aria-label="이용 순서"><span>반 코드 입력</span><span>숙제 선택</span><span>오답 확인</span></div>
+            </div>
+            <div className="result-preview" aria-hidden="true">
+              <div className="preview-top"><span>대시나루 · 숙제 확인</span><span>CHECK NOTE / 01</span></div>
+              <div className="preview-title">다시 볼 문제</div>
+              <div className="preview-numbers"><span>05</span><span>12</span></div>
+              <div className="preview-line"><b>05</b><i /><small>확인 필요</small></div>
+              <div className="preview-line"><b>12</b><i /><small>확인 필요</small></div>
+              <div className="preview-bottom"><span>틀린 문항 번호만 안내합니다</span><span>정답 비공개</span></div>
+            </div>
+          </div>
+          <div className="welcome-choose"><span>시작하기</span><span>이용할 화면을 선택해 주세요</span></div>
           <div className="role-grid">
             <button className="role-card student-card" onClick={() => { resetMessage(); setView("studentCode"); }}>
-              <span className="role-number">01</span><h2>학생</h2><p>반 코드를 입력하고<br />이번 숙제를 선택하세요.</p><b>들어가기 <span>→</span></b>
+              <span className="role-number">01 / STUDENT</span><h2>학생</h2><p>반 코드를 입력하고<br />숙제의 오답을 확인해요.</p><b>답안 입력하기 <span>↗</span></b>
             </button>
             <button className="role-card teacher-card" onClick={() => { resetMessage(); setView("teacherCode"); }}>
-              <span className="role-number">02</span><h2>선생님</h2><p>반과 숙제를 만들고<br />오답 빈도를 확인하세요.</p><b>관리자 로그인 <span>→</span></b>
+              <span className="role-number">02 / TEACHER</span><h2>선생님</h2><p>반과 숙제를 관리하고<br />문항별 오답 빈도를 살펴봐요.</p><b>관리자 페이지 <span>↗</span></b>
             </button>
           </div>
         </section>
