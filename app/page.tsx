@@ -285,7 +285,6 @@ export default function Home() {
 
       {view === "home" && (
         <section className="welcome">
-          <span className="welcome-orbit orbit-a" /><span className="welcome-orbit orbit-b" />
           <p className="eyebrow">DASHNARU KOREAN ACADEMY</p>
           <h1>숙제 오답 확인</h1>
           <p className="intro">정답은 공개하지 않고, 틀린 문항 번호만 알려드립니다.</p>
