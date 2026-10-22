@@ -2,7 +2,14 @@ import { get, list, put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
 type Classroom = { id: string; name: string; code: string };
-type HomeworkSession = { id: string; classId: string; name: string; answers: string[]; createdAt: string };
+type HomeworkSession = {
+  id: string;
+  classId: string;
+  name: string;
+  answers: string[];
+  createdAt: string;
+  statsResetAt?: string;
+};
 type Teacher = {
   id: string;
   name: string;
@@ -12,6 +19,14 @@ type Teacher = {
   updatedAt: string;
 };
 type PublicTeacher = Omit<Teacher, "pinHash">;
+type Submission = {
+  teacherId?: string;
+  classId?: string;
+  sessionId?: string;
+  studentId?: string;
+  wrong?: number[];
+  submittedAt?: string;
+};
 
 const MASTER_CODE = "0909";
 const TEACHER_PREFIX = "private/teachers/";
@@ -151,16 +166,21 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "선생님이 아직 이 숙제의 답안을 등록하지 않았습니다." }, { status: 400 });
       }
       const submitted = compact(body.answers);
-      if (!submitted.length) return NextResponse.json({ error: "답안을 입력해 주세요." }, { status: 400 });
+      if (submitted.length !== session.answers.length) {
+        return NextResponse.json({ error: "모든 문항의 답을 선택해 주세요." }, { status: 400 });
+      }
       const wrong = submitted.flatMap((answer, index) =>
-        session.answers[index] && session.answers[index] !== answer ? [index + 1] : [],
+        session.answers[index] !== answer ? [index + 1] : [],
       );
+      const studentId = clean(body.studentId);
+      if (studentId.length < 8) return NextResponse.json({ error: "학생 기록을 준비하지 못했습니다. 페이지를 새로고침해 주세요." }, { status: 400 });
       await put(
         `${SUBMISSION_PREFIX}${Date.now()}-${crypto.randomUUID()}.json`,
         JSON.stringify({
           teacherId: match.teacher.id,
           classId: match.classroom.id,
           sessionId,
+          studentId,
           wrong,
           submittedAt: new Date().toISOString(),
         }),
@@ -201,8 +221,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ teacher: publicTeacher(await saveTeacher(teacher)) });
     }
 
+    const session = teacher.sessions.find((item) => item.id === clean(body.sessionId));
+
+    if (action === "renameSession") {
+      const name = clean(body.name);
+      if (!session) return NextResponse.json({ error: "숙제를 찾을 수 없습니다." }, { status: 404 });
+      if (!name) return NextResponse.json({ error: "숙제 이름을 입력해 주세요." }, { status: 400 });
+      session.name = name;
+      return NextResponse.json({ teacher: publicTeacher(await saveTeacher(teacher)) });
+    }
+
+    if (action === "deleteSession") {
+      if (!session) return NextResponse.json({ error: "숙제를 찾을 수 없습니다." }, { status: 404 });
+      teacher.sessions = teacher.sessions.filter((item) => item.id !== session.id);
+      return NextResponse.json({ teacher: publicTeacher(await saveTeacher(teacher)) });
+    }
+
+    if (action === "resetStats") {
+      if (!session) return NextResponse.json({ error: "숙제를 찾을 수 없습니다." }, { status: 404 });
+      session.statsResetAt = new Date().toISOString();
+      return NextResponse.json({ teacher: publicTeacher(await saveTeacher(teacher)) });
+    }
+
     if (action === "saveAnswers") {
-      const session = teacher.sessions.find((item) => item.id === clean(body.sessionId));
       const answers = compact(body.answers);
       if (!session) return NextResponse.json({ error: "숙제를 찾을 수 없습니다." }, { status: 404 });
       if (!answers.length) return NextResponse.json({ error: "정답을 한 개 이상 입력해 주세요." }, { status: 400 });
@@ -214,21 +255,32 @@ export async function POST(request: Request) {
     }
 
     if (action === "getStats") {
-      const session = teacher.sessions.find((item) => item.id === clean(body.sessionId));
       if (!session) return NextResponse.json({ error: "숙제를 찾을 수 없습니다." }, { status: 404 });
+      const resetAt = session.statsResetAt ? Date.parse(session.statsResetAt) : 0;
       const { blobs } = await list({ prefix: SUBMISSION_PREFIX, limit: 1000 });
-      const counts = new Map<number, number>();
+      const latestByStudent = new Map<string, { wrong: number[]; submittedAt: number }>();
+
       for (const blob of blobs) {
-        const item = (await readBlobJson(blob)) as {
-          teacherId?: string; sessionId?: string; wrong?: number[];
-        } | null;
+        const item = (await readBlobJson(blob)) as Submission | null;
         if (item?.teacherId !== teacher.id || item.sessionId !== session.id) continue;
-        for (const question of item.wrong ?? []) counts.set(question, (counts.get(question) ?? 0) + 1);
+        const submittedAt = Date.parse(item.submittedAt ?? "") || 0;
+        if (submittedAt < resetAt) continue;
+        const studentKey = item.studentId || blob.pathname;
+        const previous = latestByStudent.get(studentKey);
+        if (!previous || submittedAt >= previous.submittedAt) {
+          latestByStudent.set(studentKey, { wrong: item.wrong ?? [], submittedAt });
+        }
+      }
+
+      const counts = new Map<number, number>();
+      for (const submission of latestByStudent.values()) {
+        for (const question of submission.wrong) counts.set(question, (counts.get(question) ?? 0) + 1);
       }
       return NextResponse.json({
         stats: [...counts.entries()]
           .map(([question, count]) => ({ question, count }))
           .sort((a, b) => b.count - a.count || a.question - b.question),
+        students: latestByStudent.size,
       });
     }
 
